@@ -13,8 +13,22 @@ bootstrap:
     postgresql:
       use_pg_rewind: true
       pg_hba:
+      - local all all trust
       - host all all 0.0.0.0/0 md5
-      - host replication ${PATRONI_REPLICATION_USERNAME} ${PATRONI_KUBERNETES_POD_IP}/16 md5
+      - hostssl replication standby all md5 clientcert=verify-ca
+      parameters:
+        citus.node_conninfo: sslrootcert=/etc/ssl/certs/ssl-cert-snakeoil.pem sslkey=/etc/ssl/private/ssl-cert-snakeoil.key sslcert=/etc/ssl/certs/ssl-cert-snakeoil.pem sslmode=verify-ca
+        max_connections: 100
+        shared_buffers: 16MB
+        ssl: 'on'
+        ssl_ca_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
+        ssl_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
+        ssl_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
+      ignore_slots:
+        - name: debezium
+          type: logical
+          database: citus
+          plugin: pgoutput
   initdb:
   - auth-host: md5
   - auth-local: trust
@@ -30,6 +44,7 @@ postgresql:
       password: '${PATRONI_SUPERUSER_PASSWORD}'
     replication:
       password: '${PATRONI_REPLICATION_PASSWORD}'
+  pre_promote: '/home/postgres/prepare_debezium_replication.sh'
 __EOF__
 
 unset PATRONI_SUPERUSER_PASSWORD PATRONI_REPLICATION_PASSWORD
