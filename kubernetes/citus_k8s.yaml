@@ -35,6 +35,18 @@ spec:
   clusterIP: None
 
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: citusdemo-3-config
+  labels:
+    application: patroni
+    cluster-name: citusdemo
+    citus-group: "3"
+spec:
+  clusterIP: None
+
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -56,9 +68,21 @@ spec:
         <<: *labels
     spec:
       serviceAccountName: citusdemo
+      initContainers:
+        - name: init-permissions
+          image: busybox
+          command:
+            - chown
+            - "-R"
+            - "999:999"
+            - "/home/postgres//pgdata"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /home/postgres//pgdata
+              name: citus-vc-0
       containers:
         - name: *cluster_name
-          image: patroni-citus-k8s # docker build -f Dockerfile.citus -t patroni-citus-k8s .
+          image: 10.100.2.10:5000/patroni-citus-k8s:latest # docker build -f Dockerfile.citus -t patroni-citus-k8s .
           imagePullPolicy: IfNotPresent
           readinessProbe:
             httpGet:
@@ -76,8 +100,8 @@ spec:
             - containerPort: 5432
               protocol: TCP
           volumeMounts:
-            - mountPath: /home/postgres/pgdata
-              name: pgdata
+            - mountPath: /home/postgres//pgdata
+              name: citus-vc-0
           env:
             - name: PATRONI_KUBERNETES_POD_IP
               valueFrom:
@@ -118,31 +142,26 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: PATRONI_POSTGRESQL_DATA_DIR
-              value: /home/postgres/pgdata/pgroot/data
+              value: /home/postgres//pgdata/pgroot/data
             - name: PATRONI_POSTGRESQL_PGPASS
               value: /tmp/pgpass
             - name: PATRONI_POSTGRESQL_LISTEN
               value: "0.0.0.0:5432"
             - name: PATRONI_RESTAPI_LISTEN
               value: "0.0.0.0:8008"
+      imagePullSecrets:
+        - name: local-registry-key
       terminationGracePeriodSeconds: 0
-      volumes:
-        - name: pgdata
-          emptyDir: {}
-#  volumeClaimTemplates:
-#  - metadata:
-#      labels:
-#        application: spilo
-#        spilo-cluster: *cluster_name
-#      annotations:
-#        volume.alpha.kubernetes.io/storage-class: anything
-#      name: pgdata
-#    spec:
-#      accessModes:
-#      - ReadWriteOnce
-#      resources:
-#        requests:
-#          storage: 5Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: citus-vc-0
+      spec:
+        storageClassName: "citus-longhorn"
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
 
 ---
 apiVersion: apps/v1
@@ -166,9 +185,21 @@ spec:
         <<: *labels
     spec:
       serviceAccountName: citusdemo
+      initContainers:
+        - name: init-permissions
+          image: busybox
+          command:
+            - chown
+            - "-R"
+            - "999:999"
+            - "/home/postgres//pgdata"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /home/postgres//pgdata
+              name: citus-vc-1
       containers:
         - name: *cluster_name
-          image: patroni-citus-k8s # docker build -f Dockerfile.citus -t patroni-citus-k8s .
+          image: 10.100.2.10:5000/patroni-citus-k8s:latest # docker build -f Dockerfile.citus -t patroni-citus-k8s .
           imagePullPolicy: IfNotPresent
           readinessProbe:
             httpGet:
@@ -186,8 +217,8 @@ spec:
             - containerPort: 5432
               protocol: TCP
           volumeMounts:
-            - mountPath: /home/postgres/pgdata
-              name: pgdata
+            - mountPath: /home/postgres//pgdata
+              name: citus-vc-1
           env:
             - name: PATRONI_KUBERNETES_POD_IP
               valueFrom:
@@ -228,31 +259,26 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: PATRONI_POSTGRESQL_DATA_DIR
-              value: /home/postgres/pgdata/pgroot/data
+              value: /home/postgres//pgdata/pgroot/data
             - name: PATRONI_POSTGRESQL_PGPASS
               value: /tmp/pgpass
             - name: PATRONI_POSTGRESQL_LISTEN
               value: "0.0.0.0:5432"
             - name: PATRONI_RESTAPI_LISTEN
               value: "0.0.0.0:8008"
+      imagePullSecrets:
+        - name: local-registry-key
       terminationGracePeriodSeconds: 0
-      volumes:
-        - name: pgdata
-          emptyDir: {}
-#  volumeClaimTemplates:
-#  - metadata:
-#      labels:
-#        application: spilo
-#        spilo-cluster: *cluster_name
-#      annotations:
-#        volume.alpha.kubernetes.io/storage-class: anything
-#      name: pgdata
-#    spec:
-#      accessModes:
-#      - ReadWriteOnce
-#      resources:
-#        requests:
-#          storage: 5Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: citus-vc-1
+      spec:
+        storageClassName: "citus-longhorn"
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
 
 ---
 apiVersion: apps/v1
@@ -276,9 +302,21 @@ spec:
         <<: *labels
     spec:
       serviceAccountName: citusdemo
+      initContainers:
+        - name: init-permissions
+          image: busybox
+          command:
+            - chown
+            - "-R"
+            - "999:999"
+            - "/home/postgres//pgdata"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /home/postgres//pgdata
+              name: citus-vc-2
       containers:
         - name: *cluster_name
-          image: patroni-citus-k8s # docker build -f Dockerfile.citus -t patroni-citus-k8s .
+          image: 10.100.2.10:5000/patroni-citus-k8s:latest # docker build -f Dockerfile.citus -t patroni-citus-k8s .
           imagePullPolicy: IfNotPresent
           readinessProbe:
             httpGet:
@@ -296,8 +334,8 @@ spec:
             - containerPort: 5432
               protocol: TCP
           volumeMounts:
-            - mountPath: /home/postgres/pgdata
-              name: pgdata
+            - mountPath: /home/postgres//pgdata
+              name: citus-vc-2
           env:
             - name: PATRONI_KUBERNETES_POD_IP
               valueFrom:
@@ -338,31 +376,143 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: PATRONI_POSTGRESQL_DATA_DIR
-              value: /home/postgres/pgdata/pgroot/data
+              value: /home/postgres//pgdata/pgroot/data
             - name: PATRONI_POSTGRESQL_PGPASS
               value: /tmp/pgpass
             - name: PATRONI_POSTGRESQL_LISTEN
               value: "0.0.0.0:5432"
             - name: PATRONI_RESTAPI_LISTEN
               value: "0.0.0.0:8008"
+      imagePullSecrets:
+        - name: local-registry-key
       terminationGracePeriodSeconds: 0
-      volumes:
-        - name: pgdata
-          emptyDir: {}
-#  volumeClaimTemplates:
-#  - metadata:
-#      labels:
-#        application: spilo
-#        spilo-cluster: *cluster_name
-#      annotations:
-#        volume.alpha.kubernetes.io/storage-class: anything
-#      name: pgdata
-#    spec:
-#      accessModes:
-#      - ReadWriteOnce
-#      resources:
-#        requests:
-#          storage: 5Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: citus-vc-2
+      spec:
+        storageClassName: "citus-longhorn"
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: &cluster_name citusdemo-3
+  labels: &labels
+    application: patroni
+    cluster-name: citusdemo
+    citus-group: "3"
+    citus-type: worker
+spec:
+  replicas: 2
+  serviceName: *cluster_name
+  selector:
+    matchLabels:
+      <<: *labels
+  template:
+    metadata:
+      labels:
+        <<: *labels
+    spec:
+      serviceAccountName: citusdemo
+      initContainers:
+        - name: init-permissions
+          image: busybox
+          command:
+            - chown
+            - "-R"
+            - "999:999"
+            - "/home/postgres//pgdata"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /home/postgres//pgdata
+              name: citus-vc-3
+      containers:
+        - name: *cluster_name
+          image: 10.100.2.10:5000/patroni-citus-k8s:latest # docker build -f Dockerfile.citus -t patroni-citus-k8s .
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /readiness
+              port: 8008
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          ports:
+            - containerPort: 8008
+              protocol: TCP
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /home/postgres//pgdata
+              name: citus-vc-3
+          env:
+            - name: PATRONI_KUBERNETES_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: PATRONI_KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: PATRONI_KUBERNETES_BYPASS_API_SERVICE
+              value: "true"
+            - name: PATRONI_KUBERNETES_USE_ENDPOINTS
+              value: "true"
+            - name: PATRONI_KUBERNETES_LABELS
+              value: "{application: patroni, cluster-name: citusdemo}"
+            - name: PATRONI_CITUS_DATABASE
+              value: citus
+            - name: PATRONI_CITUS_GROUP
+              value: "3"
+            - name: PATRONI_SUPERUSER_USERNAME
+              value: postgres
+            - name: PATRONI_SUPERUSER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: citusdemo
+                  key: superuser-password
+            - name: PATRONI_REPLICATION_USERNAME
+              value: standby
+            - name: PATRONI_REPLICATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: citusdemo
+                  key: replication-password
+            - name: PATRONI_SCOPE
+              value: citusdemo
+            - name: PATRONI_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: PATRONI_POSTGRESQL_DATA_DIR
+              value: /home/postgres//pgdata/pgroot/data
+            - name: PATRONI_POSTGRESQL_PGPASS
+              value: /tmp/pgpass
+            - name: PATRONI_POSTGRESQL_LISTEN
+              value: "0.0.0.0:5432"
+            - name: PATRONI_RESTAPI_LISTEN
+              value: "0.0.0.0:8008"
+      imagePullSecrets:
+        - name: local-registry-key
+      terminationGracePeriodSeconds: 0
+  volumeClaimTemplates:
+    - metadata:
+        name: citus-vc-3
+      spec:
+        storageClassName: "citus-longhorn"
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
 
 ---
 apiVersion: v1
@@ -394,6 +544,29 @@ spec:
 
 ---
 apiVersion: v1
+kind: Service
+metadata:
+  name: citusdemo-0-leader
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    application: patroni
+    citus-type: coordinator
+    citus-group: "0"
+    cluster-name: citusdemo
+    role: master
+  sessionAffinity: None
+status:
+  loadBalancer: {}
+
+---
+apiVersion: v1
 kind: Endpoints
 metadata:
   name: citusdemo-1
@@ -419,6 +592,29 @@ spec:
   ports:
     - port: 5432
       targetPort: 5432
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: citusdemo-1-leader
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    application: patroni
+    citus-type: worker
+    citus-group: "1"
+    cluster-name: citusdemo
+    role: master
+  sessionAffinity: None
+status:
+  loadBalancer: {}
 
 ---
 apiVersion: v1
@@ -452,7 +648,81 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: citusdemo-workers
+  name: citusdemo-2-leader
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    application: patroni
+    citus-type: worker
+    citus-group: "2"
+    cluster-name: citusdemo
+    role: master
+  sessionAffinity: None
+status:
+  loadBalancer: {}
+
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: citusdemo-3
+  labels:
+    application: patroni
+    cluster-name: citusdemo
+    citus-group: "3"
+    citus-type: worker
+subsets: []
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: citusdemo-3
+  labels:
+    application: patroni
+    cluster-name: citusdemo
+    citus-group: "3"
+    citus-type: worker
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: citusdemo-3-leader
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+  selector:
+    application: patroni
+    citus-type: worker
+    citus-group: "3"
+    cluster-name: citusdemo
+    role: master
+  sessionAffinity: None
+status:
+  loadBalancer: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: citusdemo-workers-masters
   labels: &labels
     application: patroni
     cluster-name: citusdemo
