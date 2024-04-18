@@ -29,6 +29,7 @@ bootstrap:
           type: logical
           database: citus
           plugin: pgoutput
+      pre_promote: '/home/postgres/prepare_debezium_replication.sh'
   initdb:
   - auth-host: md5
   - auth-local: trust
@@ -44,7 +45,6 @@ postgresql:
       password: '${PATRONI_SUPERUSER_PASSWORD}'
     replication:
       password: '${PATRONI_REPLICATION_PASSWORD}'
-  pre_promote: '/home/postgres/prepare_debezium_replication.sh'
 __EOF__
 
 unset PATRONI_SUPERUSER_PASSWORD PATRONI_REPLICATION_PASSWORD
